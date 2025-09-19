@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Web</title>
+    <link rel="stylesheet" href="weather.css">
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">Weather Web</h1>
+        
+        <div class="search-box">
+            <input type="text" id="city-input" placeholder="Enter city name">
+            <button id="search-btn">Search</button>
+        </div>
+        
+        <div class="loading">
+            <div class="loading-spinner"></div>
+        </div>
+        
+        <div class="error-message" id="error-message">
+            City not found. Please check the city name and try again.
+        </div>
+        
+        <div class="weather-card" id="weather-card">
+            <div class="city-name" id="city-name"></div>
+            <div class="weather-icon" id="weather-icon">⛅</div>
+            <div class="temperature" id="temperature"></div>
+            <div class="weather-type" id="weather-type"></div>
+            
+            <div class="weather-details">
+                <div class="detail">
+                    <i>💧</i>
+                    <div class="detail-label">Humidity</div>
+                    <div class="detail-value" id="humidity"></div>
+                </div>
+                <div class="detail">
+                    <i>💨</i>
+                    <div class="detail-label">Wind Speed</div>
+                    <div class="detail-value" id="wind-speed"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const apiKey = '7352f2447cc7e77b04082d19fc97b843';
+            const cityInput = document.getElementById('city-input');
+            const searchBtn = document.getElementById('search-btn');
+            const weatherCard = document.getElementById('weather-card');
+            const errorMessage = document.getElementById('error-message');
+            const loading = document.querySelector('.loading');
+            
+            const cityName = document.getElementById('city-name');
+            const temperature = document.getElementById('temperature');
+            const weatherType = document.getElementById('weather-type');
+            const humidity = document.getElementById('humidity');
+            const windSpeed = document.getElementById('wind-speed');
+            const weatherIcon = document.getElementById('weather-icon');
+            
+            // Function to get weather data
+            function getWeatherData(city) {
+                loading.style.display = 'block';
+                weatherCard.style.display = 'none';
+                errorMessage.style.display = 'none';
+                
+                fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`)
+                    .then(response => {
+                        if (response.status !== 200) {
+                            throw new Error('City not found');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        
+                        cityName.textContent = `${data.name}, ${data.sys.country}`;
+                        temperature.textContent = `${Math.round(data.main.temp)}°C`;
+                        weatherType.textContent = data.weather[0].description;
+                        humidity.textContent = `${data.main.humidity}%`;
+                        windSpeed.textContent = `${data.wind.speed} m/s`;
+                        
+                       
+                        const weatherMain = data.weather[0].main.toLowerCase();
+                        if (weatherMain.includes('cloud')) {
+                            weatherIcon.textContent = '☁️';
+                        } else if (weatherMain.includes('rain')) {
+                            weatherIcon.textContent = '🌧️';
+                        } else if (weatherMain.includes('clear')) {
+                            weatherIcon.textContent = '☀️';
+                        } else if (weatherMain.includes('snow')) {
+                            weatherIcon.textContent = '❄️';
+                        } else {
+                            weatherIcon.textContent = '⛅';
+                        }
+                        
+                       
+                        loading.style.display = 'none';
+                        weatherCard.style.display = 'block';
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        loading.style.display = 'none';
+                        errorMessage.style.display = 'block';
+                    });
+            }
+            
+            // Event listener for search button
+            searchBtn.addEventListener('click', function() {
+                const city = cityInput.value.trim();
+                if (city) {
+                    getWeatherData(city);
+                }
+            });
+            
+            // Event listener for Enter key in input
+            cityInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const city = cityInput.value.trim();
+                    if (city) {
+                        getWeatherData(city);
+                    }
+                }
+            });
+            
+            // Focus the input field on page load
+            cityInput.focus();
+        });
+    </script>
+</body>
+</html>
